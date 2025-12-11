@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.core.validators import MinValueValidator
 from django.db.models import Sum, QuerySet, Count
@@ -5,7 +6,8 @@ from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
 from foodcartapp.constants import PaymentMethod, OrderStatus
-from utils.geocoder import get_distance_between_addresses
+
+from location.service import LocationService
 
 
 class RestaurantQuerySet(models.QuerySet):
@@ -165,11 +167,12 @@ class Order(models.Model):
         verbose_name_plural = "заказы"
 
     def get_available_restaurants(self) -> list[Restaurant]:
+        location_service = LocationService(geocoder_api_key=settings.YANDEX_GEOCODER_API_KEY)
         restaurants_with_distances = []
         restaurants = Restaurant.objects.with_available_products(order_id=self.pk)
 
         for restaurant in restaurants:
-            distance = get_distance_between_addresses(restaurant.address, self.address)
+            distance = location_service.get_distance_between_addresses(restaurant.address, self.address)
 
             if distance is not None:
                 restaurant.distance_to_address = distance
