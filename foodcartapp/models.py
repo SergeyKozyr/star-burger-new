@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator
-from django.db.models import Sum
+from django.db.models import Sum, QuerySet
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -105,8 +105,11 @@ class RestaurantMenuItem(models.Model):
 
 
 class OrderQuerySet(models.QuerySet):
-    def with_total_price(self):
+    def with_total_price(self) -> QuerySet["Order"]:
         return self.annotate(total_price=Sum("items__price"))
+
+    def active(self) -> QuerySet["Order"]:
+        return self.exclude(status=OrderStatus.PROCESSED)
 
 
 class Order(models.Model):
@@ -115,7 +118,7 @@ class Order(models.Model):
     phonenumber = PhoneNumberField("Номер телефона", max_length=12)
     address = models.CharField("Адрес", max_length=100)
     status = models.CharField(
-        "Статус", max_length=11, choices=OrderStatus, default=OrderStatus.UNPROCESSED, db_index=True
+        "Статус", max_length=13, choices=OrderStatus, default=OrderStatus.UNPROCESSED, db_index=True
     )
     payment_method = models.CharField(
         "Способ оплаты",

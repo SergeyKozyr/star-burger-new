@@ -18,7 +18,6 @@ class CreateOrderSerializer(ModelSerializer):
     def create(self, validated_data: dict[str, Any]) -> Order:
         items = validated_data.pop("products")
         order = Order.objects.create(**validated_data)
-        print(1 / 0)
         order_items = [
             OrderItem(order=order, price=item["quantity"] * item["product"].price, **item)
             for item in items

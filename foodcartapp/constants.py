@@ -7,5 +7,7 @@ class PaymentMethod(TextChoices):
 
 
 class OrderStatus(TextChoices):
-    PROCESSED = "processed", "Обработанный"
     UNPROCESSED = "unprocessed", "Необработанный"
+    IN_RESTAURANT = "in_restaurant", "Готовится в ресторане"
+    IN_DELIVERY = "in_delivery", "У курьера"
+    PROCESSED = "processed", "Обработанный"
