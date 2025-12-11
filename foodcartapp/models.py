@@ -1,10 +1,20 @@
 from django.db import models
 from django.core.validators import MinValueValidator
-from django.db.models import Sum, QuerySet
+from django.db.models import Sum, QuerySet, Count
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
 from foodcartapp.constants import PaymentMethod, OrderStatus
+
+
+class RestaurantQuerySet(models.QuerySet):
+    def with_available_products(self, order_id: int) -> QuerySet["Restaurant"]:
+        products = OrderItem.objects.filter(order_id=order_id).values_list("product_id", flat=True)
+        return (
+            self.filter(menu_items__availability=True, menu_items__product_id__in=products)
+            .annotate(cnt=Count("menu_items__product_id", distinct=True))
+            .filter(cnt=len(products))
+        )
 
 
 class Restaurant(models.Model):
@@ -19,6 +29,8 @@ class Restaurant(models.Model):
         max_length=50,
         blank=True,
     )
+
+    objects = RestaurantQuerySet.as_manager()
 
     class Meta:
         verbose_name = "ресторан"
@@ -127,6 +139,15 @@ class Order(models.Model):
         db_index=True,
     )
     comment = models.TextField("Комментарий", blank=True)
+    restaurant = models.ForeignKey(
+        Restaurant,
+        related_name="orders",
+        verbose_name="Ресторан, который готовит заказ",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+
     registered_at = models.DateTimeField(
         "Время создания заказа", default=timezone.now, db_index=True
     )
@@ -141,6 +162,9 @@ class Order(models.Model):
     class Meta:
         verbose_name = "заказ"
         verbose_name_plural = "заказы"
+
+    def get_available_restaurants(self) -> QuerySet["Restaurant"]:
+        return Restaurant.objects.with_available_products(order_id=self.pk)
 
 
 class OrderItem(models.Model):

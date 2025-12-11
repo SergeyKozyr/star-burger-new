@@ -104,5 +104,7 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url="restaurateur:login")
 def view_orders(request):
-    orders = Order.objects.active().with_total_price()
+    orders = (
+        Order.objects.active().select_related("restaurant").with_total_price().order_by("-status")
+    )
     return render(request, template_name="order_items.html", context={"orders": orders})

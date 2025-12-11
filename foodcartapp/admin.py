@@ -118,6 +118,11 @@ class OrderItemInline(admin.TabularInline):
 class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline]
 
+    def get_form(self, request, obj=None, **kwargs):
+        form = super(OrderAdmin, self).get_form(request, obj, **kwargs)
+        form.base_fields["restaurant"].queryset = Restaurant.objects.with_available_products(obj.id)
+        return form
+
     def response_post_save_change(self, request, obj):
         res = super().response_post_save_change(request, obj)
         next_url = request.GET.get("next")
