@@ -5,6 +5,7 @@ from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
 from foodcartapp.constants import PaymentMethod, OrderStatus
+from utils.geocoder import get_distance_between_addresses
 
 
 class RestaurantQuerySet(models.QuerySet):
@@ -163,8 +164,18 @@ class Order(models.Model):
         verbose_name = "заказ"
         verbose_name_plural = "заказы"
 
-    def get_available_restaurants(self) -> QuerySet["Restaurant"]:
-        return Restaurant.objects.with_available_products(order_id=self.pk)
+    def get_available_restaurants(self) -> list[Restaurant]:
+        restaurants_with_distances = []
+        restaurants = Restaurant.objects.with_available_products(order_id=self.pk)
+
+        for restaurant in restaurants:
+            distance = get_distance_between_addresses(restaurant.address, self.address)
+
+            if distance is not None:
+                restaurant.distance_to_address = distance
+                restaurants_with_distances.append(restaurant)
+
+        return sorted(restaurants_with_distances, key=lambda r: r.distance_to_address)
 
 
 class OrderItem(models.Model):

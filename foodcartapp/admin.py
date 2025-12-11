@@ -120,7 +120,10 @@ class OrderAdmin(admin.ModelAdmin):
 
     def get_form(self, request, obj=None, **kwargs):
         form = super(OrderAdmin, self).get_form(request, obj, **kwargs)
-        form.base_fields["restaurant"].queryset = Restaurant.objects.with_available_products(obj.id)
+        if obj:
+            form.base_fields["restaurant"].queryset = Restaurant.objects.with_available_products(
+                obj.id
+            )
         return form
 
     def response_post_save_change(self, request, obj):
