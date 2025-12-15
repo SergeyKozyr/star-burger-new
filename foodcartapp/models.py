@@ -1,23 +1,15 @@
+from collections import defaultdict
+
 from django.conf import settings
 from django.db import models
 from django.core.validators import MinValueValidator
-from django.db.models import Sum, QuerySet, Count
+from django.db.models import Sum, QuerySet
 from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 
 from foodcartapp.constants import PaymentMethod, OrderStatus
 
 from location.service import LocationService
-
-
-class RestaurantQuerySet(models.QuerySet):
-    def with_available_products(self, order_id: int) -> QuerySet["Restaurant"]:
-        products = OrderItem.objects.filter(order_id=order_id).values_list("product_id", flat=True)
-        return (
-            self.filter(menu_items__availability=True, menu_items__product_id__in=products)
-            .annotate(cnt=Count("menu_items__product_id", distinct=True))
-            .filter(cnt=len(products))
-        )
 
 
 class Restaurant(models.Model):
@@ -32,8 +24,6 @@ class Restaurant(models.Model):
         max_length=50,
         blank=True,
     )
-
-    objects = RestaurantQuerySet.as_manager()
 
     class Meta:
         verbose_name = "ресторан"
@@ -126,6 +116,54 @@ class OrderQuerySet(models.QuerySet):
     def active(self) -> QuerySet["Order"]:
         return self.exclude(status=OrderStatus.PROCESSED)
 
+    def with_available_restaurants(self) -> QuerySet["Order"]:
+        restaurants_with_products = defaultdict(set)
+        restaurant_items = (
+            RestaurantMenuItem.objects.filter(availability=True)
+            .select_related("restaurant", "product")
+            .iterator()
+        )
+
+        for restaurant_item in restaurant_items:
+            restaurants_with_products[restaurant_item.restaurant].add(restaurant_item.product.pk)
+
+        for order in self:
+            available_restaurants = []
+            order_items = set(order.items.values_list("product_id", flat=True))
+
+            for restaurant, products in restaurants_with_products.items():
+                if order_items.issubset(products):
+                    available_restaurants.append(restaurant)
+
+            order.available_restaurants = available_restaurants
+
+        return self
+
+    def with_distance_to_restaurants(self) -> QuerySet["Order"]:
+        location_service = LocationService(geocoder_api_key=settings.YANDEX_GEOCODER_API_KEY)
+
+        for order in self:
+            if not hasattr(order, "available_restaurants"):
+                continue
+
+            restaurants_with_distances = []
+
+            for restaurant in order.available_restaurants:
+                distance = location_service.get_distance_between_addresses(
+                    restaurant.address, order.address
+                )
+
+                if distance is not None:
+                    restaurants_with_distances.append(
+                        {"name": restaurant.name, "distance_to_address": distance}
+                    )
+
+            order.restaurants_with_distances = sorted(
+                restaurants_with_distances, key=lambda r: r["distance_to_address"]
+            )
+
+        return self
+
 
 class Order(models.Model):
     firstname = models.CharField("Имя", max_length=15)
@@ -165,20 +203,6 @@ class Order(models.Model):
     class Meta:
         verbose_name = "заказ"
         verbose_name_plural = "заказы"
-
-    def get_available_restaurants(self) -> list[Restaurant]:
-        location_service = LocationService(geocoder_api_key=settings.YANDEX_GEOCODER_API_KEY)
-        restaurants_with_distances = []
-        restaurants = Restaurant.objects.with_available_products(order_id=self.pk)
-
-        for restaurant in restaurants:
-            distance = location_service.get_distance_between_addresses(restaurant.address, self.address)
-
-            if distance is not None:
-                restaurant.distance_to_address = distance
-                restaurants_with_distances.append(restaurant)
-
-        return sorted(restaurants_with_distances, key=lambda r: r.distance_to_address)
 
 
 class OrderItem(models.Model):
