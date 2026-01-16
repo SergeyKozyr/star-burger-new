@@ -7,3 +7,4 @@ phonenumbers==9.0.*
 djangorestframework==3.16.*
 requests==2.32.*
 geopy==2.4.*
+gunicorn==23.*
