@@ -145,7 +145,7 @@ Parcel будет следить за файлами в каталоге `bundle
 Настроить бэкенд: создать файл `.env` в каталоге `star_burger/` со следующими настройками:
 
 - `ALLOWED_HOSTS` — [см. документацию Django](https://docs.djangoproject.com/en/5.2/ref/settings/#allowed-hosts)
-- `DB_PASSWORD` - пароль базы данных
+- `DATABASE_URL` - URL подключения к бд, например `postgresql://USER:PASSWORD@HOST:PORT/NAME`
 - `DEBUG` — дебаг-режим. Поставьте `False`.
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте.
 - `YANDEX_GEOCODE_API_KEY` - для получения координат по адресу, [документация](https://dvmn.org/encyclopedia/api-docs/yandex-geocoder-api/) 
