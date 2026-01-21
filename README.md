@@ -150,6 +150,8 @@ Parcel будет следить за файлами в каталоге `bundle
 - `SECRET_KEY` — секретный ключ проекта. Он отвечает за шифрование на сайте. Например, им зашифрованы все пароли на вашем сайте.
 - `YANDEX_GEOCODE_API_KEY` - для получения координат по адресу, [документация](https://dvmn.org/encyclopedia/api-docs/yandex-geocoder-api/) 
 
+На сервере запустить скрипт деплоя `./deploy_star_burger.sh`
+
 ## Цели проекта
 
 Код написан в учебных целях — это урок в курсе по Python и веб-разработке на сайте [Devman](https://dvmn.org). За основу был взят код проекта [FoodCart](https://github.com/Saibharath79/FoodCart).
