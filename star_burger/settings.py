@@ -139,7 +139,7 @@ REST_FRAMEWORK = {
 YANDEX_GEOCODER_API_KEY = env("YANDEX_GEOCODER_API_KEY")
 
 ROLLBAR = {
-    "access_token": env("ROLLBAR_ACCESS_TOKEN"),
+    "access_token": env("ROLLBAR_ACCESS_TOKEN", None),
     "environment": env("ENVIRONMENT", "development"),
     "code_version": "1.0",
     "root": BASE_DIR,
