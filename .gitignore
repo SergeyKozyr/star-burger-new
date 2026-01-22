@@ -143,4 +143,4 @@ cython_debug/
 
 .parcel-cache/
 .idea/
-.staticfiles/
+staticfiles/
