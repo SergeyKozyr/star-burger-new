@@ -1,5 +1,8 @@
-bundles/**
-node_modules/
+.idea/
+frontend/.parcel-cache/
+frontend/node_modules/
+staticfiles/
+frontend/bundles/**
 media/
 
 # Byte-compiled / optimized / DLL files
@@ -62,7 +65,7 @@ cover/
 # Django stuff:
 *.log
 local_settings.py
-db.sqlite3
+backend/db.sqlite3
 db.sqlite3-journal
 
 # Flask stuff:
@@ -140,7 +143,3 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
-
-.parcel-cache/
-.idea/
-staticfiles/

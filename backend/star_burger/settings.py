@@ -123,8 +123,12 @@ INTERNAL_IPS = ["127.0.0.1"]
 
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "assets"),
-    os.path.join(BASE_DIR, "bundles"),
+    path
+    for path in (
+        os.path.join(BASE_DIR, "assets"),
+        os.path.join(BASE_DIR, "bundles"),
+    )
+    if os.path.isdir(path)
 ]
 
 PHONENUMBER_DEFAULT_REGION = "RU"
