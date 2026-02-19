@@ -3,7 +3,7 @@ name: star-burger
 services:
   backend:
     build: ./backend
-    command: sh -c "python manage.py collectstatic --no-input && gunicorn -w 3 -b 0.0.0.0:8080 star_burger.wsgi:application"
+    command: sh -c "python manage.py collectstatic --no-input && gunicorn -w 3 -b 127.0.0.1:8080 star_burger.wsgi:application"
     env_file: ./backend/.env
     restart: unless-stopped
     ports:
